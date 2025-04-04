@@ -1,8 +1,8 @@
 ﻿using ApiFilm.Interfaces;
 using ApiFilm.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.Data;
 
 namespace ApiFilm.Controllers
 {
@@ -18,6 +18,7 @@ namespace ApiFilm.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userService.GetAllUsersAsync();
@@ -25,6 +26,7 @@ namespace ApiFilm.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> GetUserById(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);
@@ -45,6 +47,7 @@ namespace ApiFilm.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateUser(int id, User user)
         {
             if (id != user.Id)
@@ -58,6 +61,7 @@ namespace ApiFilm.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")] // Only admins can delete users
         public async Task<IActionResult> DeleteUser(int id)
         {
             var result = await _userService.DeleteUserAsync(id);
@@ -68,20 +72,20 @@ namespace ApiFilm.Controllers
         }
 
         [HttpPost("authentication")]
-        public async Task<IActionResult> Authenticate([FromBody] LoginRequest loginRequest)
+        public async Task<IActionResult> Authenticate([FromBody] ApiFilm.Models.LoginRequest loginRequest)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var authenticatedUser = await _userService.AuthenticateAsync(loginRequest.Email, loginRequest.Password);
-            if (authenticatedUser == null)
+            var token = await _userService.AuthenticateAsync(loginRequest.Email, loginRequest.Password);
+            if (token == null)
             {
                 return Unauthorized();
             }
 
-            return Ok(authenticatedUser);
+            return Ok(new { Token = token });
         }
     }
 }

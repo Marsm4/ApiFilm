@@ -9,6 +9,6 @@ namespace ApiFilm.Interfaces
         Task<bool> CreateUserAsync(User user);
         Task<bool> UpdateUserAsync(User user);
         Task<bool> DeleteUserAsync(int id);
-        Task<User> AuthenticateAsync(string email, string password);
+        Task<string> AuthenticateAsync(string email, string password);
     }
 }
